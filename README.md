@@ -19,5 +19,3 @@ or use vscode debugger
 2. From outside of devcontainer build and pub a docker image:
 
         make docker-pub TAG=0.0.15
-
-tmp

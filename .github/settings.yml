@@ -1,1 +1,4 @@
 _extends: .github:settings.yml
+repository:
+  name: sigsvc
+  description: Signaling service (WebSockets based 222)
