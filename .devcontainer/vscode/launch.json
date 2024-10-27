@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Debug App",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/sigsvc/main.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.devcontainer/.env",
+            "justMyCode": false
+        }
+    ]
+}

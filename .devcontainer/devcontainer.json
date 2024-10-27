@@ -1,0 +1,27 @@
+{
+    "name": "yag-sigsvc",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--name=yag-sigsvc",
+        "--add-host=sessionsvc.yag.dc:host-gateway",
+		"--env-file=${localWorkspaceFolder}/.devcontainer/.env",
+        "--env-file=${localWorkspaceFolder}/.devcontainer/secret.env"
+	],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.black-formatter",
+                "humao.rest-client"
+            ]
+        }
+    },
+    "postCreateCommand": ".devcontainer/post-create.sh",
+    "appPort": [
+        "8081:80"
+    ],
+    "mounts": [
+        "source=${env:HOME}${env:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind"
+    ]
+}

@@ -1,0 +1,111 @@
+[build-system]
+build-backend = "poetry_dynamic_versioning.backend"
+requires = ["poetry-core", "poetry-dynamic-versioning"]
+
+[tool.poetry]
+authors = ["acme-im"]
+description = "yag signaling service"
+keywords = ["signaling"]
+name = "sigsvc"
+readme = "README.md"
+version = "0.0.0"
+packages = [{ include = "sigsvc" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aiohttp = "^3.9.3"
+aiohttp-retry = "^2.8.3"
+itsdangerous = "^2.1.2"
+marshmallow = "^3.20.2"
+marshmallow-dataclass = "^8.6.0"
+opentelemetry-distro = "*"
+opentelemetry-exporter-otlp = "*"
+websockets = "^12.0"
+werkzeug = "^3.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "*"
+tox = "*"
+# move mypys' types-* modules deps into .pre-commit-config.yaml
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+pytest-dotenv = "*"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
+
+[tool.bandit.assert_used]
+exclude = ["*_test.py", "test_*.py"]
+
+[tool.black]
+line-length = 120
+exclude = '''
+(
+  \.git
+  | \.tox
+  | \.venv
+  | venv
+  | build
+  | dist
+)
+'''
+
+[tool.isort]
+include_trailing_comma = true
+force_grid_wrap = 2
+use_parentheses = true
+line_length = 120
+profile = "black"
+multi_line_output = 3
+skip = "target"
+skip_glob = "**/gen/*,.venv*/*,venv*/*,.tox/*"
+known_first_party = "sigsvc"
+
+[tool.mypy]
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+plugins = "marshmallow_dataclass.mypy"
+
+[tool.pytest.ini_options]
+addopts = "-s -v"
+env_files = [
+    "tests/pytest.env",
+    ".devcontainer/secret.env"
+]
+markers = [
+    "integration: marks integration tests",
+    "unit: marks unittests"
+]
+testpaths = "tests"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = True
+skipsdist = True
+skip_missing_interpreters = True
+
+[testenv:lint]
+skip_install = false
+recreate = false
+ignore_errors = false
+deps =
+    pre-commit
+commands =
+    pre-commit run --all-files
+
+[testenv:test]
+recreate = false
+ignore_errors = true
+deps =
+    poetry
+commands_pre =
+    poetry install --with test
+commands =
+    poetry run pytest tests/
+"""

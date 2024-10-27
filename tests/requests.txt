@@ -1,0 +1,15 @@
+wscat -H "Cookie: session=.eJwlzj0KwzAMQOG7eO5g2ZZk5TLB-qNdk2YqvXsDhTc_vk_Z84jzWbb3ccWj7C8vW8HmqDDR55LsfXHN5mFi3GFmoAkLGOWcWMVpGJtSsEjDRl5t3SUEUxMMXa1ChCcn-QC9365ELYSMuupYc-piHujS2UWYyg25zjj-GijfH_GJL9Y.ZncmUg.muFEdTEQlG2nyCF8Aoug-SAHKl8 sigsvc_wsconnid=1234" -c ws://localhost:80/
+
+{"type":"setPeerStatus","roles":["listener"],"meta":{"name":"WebClient-1710012842969"}}
+
+{"type":"list"}
+
+{"type":"createSession", "app_release_uuid": "421ba7f4-97ad-4c5d-8fbc-e176513516ba", "preferred_dcs": null}
+
+{"type":"getSession", "sessionId": "123454"}
+
+{"type":"endSession", "sessionId": "12345"}
+
+{"type":"getSessions"}
+
+{"type":"submitWebRtcStats", "sessionId": "1ebbbd9b-6a89-42aa-a090-4e4fb2f47562", "stats": {        "candidate_pair": {            "currentRoundTripTime": 0.222        },        "inbound_rtp": {            "framesPerSecond": 59,            "nackCount": 2,            "packetsLost": 567        },        "remote_inbound_rtp": {            "packetsLost": 567,            "roundTripTime": 0.222,            "roundTripTimeMeasurements": 1        }    }}
