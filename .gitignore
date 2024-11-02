@@ -24,4 +24,4 @@ dist
 node_modules
 
 package.json
-secret.env
+secrets.env

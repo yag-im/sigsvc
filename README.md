@@ -2,20 +2,20 @@
 
 Based on https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/tree/main/net/webrtc/signalling/src.
 
-Public signaling endpoint accessible from both Jukebox clusters and users.
+Public WebRTC signaling endpoint accessible from both Jukebox clusters and end-users.
 
-## Run locally
+## Development
 
-python app.py
+### Prerequisite
 
-or use vscode debugger
+Create *.devcontainer/secrets.env* file:
 
-## Publish new version
+    FLASK_SECRET_KEY=***VALUE***
+    FLASK_SECURITY_PASSWORD_SALT=***VALUE***
+    AUTH_TOKEN=***VALUE***
 
-1. From devcontainer build app package:
+The following devcontainers should be up and running:
 
-        make build
+    sessionsvc
 
-2. From outside of devcontainer build and pub a docker image:
-
-        make docker-pub TAG=0.0.15
+Then simply open this project in any IDE that supports devcontainers (VSCode is recommended).

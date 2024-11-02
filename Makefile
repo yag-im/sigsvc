@@ -36,11 +36,11 @@ bootstrap: ## Perform a bootstrap
 
 .PHONY: lint
 lint: ## Run linters
-	tox -e lint
+	poetry run tox -e lint
 
 .PHONY: test
 test: ## Run unit tests
-	tox -e test
+	poetry run tox -e test
 
 .PHONY: clean
 clean: ## Remove all generated artifacts (except .venv and .env)
@@ -85,3 +85,11 @@ ifdef TAG
 else
 	@echo 1>&2 "usage: make docker-pub TAG=1.0.0"
 endif
+
+.PHONY: gha-build
+gha-build: ## GitHub action: install all deps, lint, test and build app
+	poetry install --only dev
+	$(MAKE) lint
+	$(MAKE) test
+	poetry install
+	poetry build -f wheel

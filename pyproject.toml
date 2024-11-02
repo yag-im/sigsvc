@@ -75,7 +75,7 @@ plugins = "marshmallow_dataclass.mypy"
 addopts = "-s -v"
 env_files = [
     "tests/pytest.env",
-    ".devcontainer/secret.env"
+    ".devcontainer/secrets.env"
 ]
 markers = [
     "integration: marks integration tests",
