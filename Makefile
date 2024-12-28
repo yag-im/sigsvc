@@ -57,7 +57,7 @@ docker-run: ## Run dev docker image
 		--name yag-$(APP_NAME) \
 		-p $(LISTEN_PORT):$(LISTEN_PORT)/tcp \
 		--env-file $(ROOT_DIR)/.devcontainer/.env \
-		--env-file $(ROOT_DIR)/.devcontainer/secret.env \
+		--env-file $(ROOT_DIR)/.devcontainer/secrets.env \
 		$(DOCKER_IMAGE_TAG)
 
 .PHONY: docker-build
@@ -66,25 +66,6 @@ docker-build: ## Build docker image
 		-t $(DOCKER_IMAGE_TAG) \
 		--progress plain \
 		.
-
-AWS_ECR_ACCOUNT_ID := 070143334704
-AWS_ECR_PROFILE := ecr-rw
-AWS_ECR_REGION := us-east-1
-AWS_ECR_REPO := im.acme.yag
-
-.PHONY: docker-pub
-docker-pub: ## Create a release tag and publish docker image
-ifdef TAG
-	git fetch \
-	&& git checkout main \
-	&& git tag -am "Release v$(TAG)" v$(TAG) \
-	&& git push origin v$(TAG) \
-	&& $(MAKE) docker-build \
-	&& docker tag $(DOCKER_IMAGE_TAG) $(AWS_ECR_ACCOUNT_ID).dkr.ecr.$(AWS_ECR_REGION).amazonaws.com/$(AWS_ECR_REPO).$(APP_NAME):$(TAG) \
-	&& AWS_PROFILE=$(AWS_ECR_PROFILE) docker push $(AWS_ECR_ACCOUNT_ID).dkr.ecr.$(AWS_ECR_REGION).amazonaws.com/$(AWS_ECR_REPO).$(APP_NAME):$(TAG)
-else
-	@echo 1>&2 "usage: make docker-pub TAG=1.0.0"
-endif
 
 .PHONY: gha-build
 gha-build: ## GitHub action: install all deps, lint, test and build app
