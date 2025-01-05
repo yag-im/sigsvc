@@ -6,8 +6,7 @@
     "runArgs": [
         "--name=yag-sigsvc",
         "--add-host=sessionsvc.yag.dc:host-gateway",
-		"--env-file=${localWorkspaceFolder}/.devcontainer/.env",
-        "--env-file=${localWorkspaceFolder}/.devcontainer/secrets.env"
+		"--env-file=${localWorkspaceFolder}/.devcontainer/.env"
 	],
     "customizations": {
         "vscode": {

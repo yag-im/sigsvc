@@ -8,11 +8,6 @@ Public WebRTC signaling endpoint accessible from both Jukebox clusters and end-u
 
 ### Prerequisite
 
-Create *.devcontainer/secrets.env* file:
-
-    FLASK_SECRET_KEY=***VALUE***
-    FLASK_SECURITY_PASSWORD_SALT=***VALUE***
-    AUTH_TOKEN=***VALUE***
 
 The following devcontainers should be up and running:
 

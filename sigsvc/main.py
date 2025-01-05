@@ -6,7 +6,6 @@ import typing as t
 import websockets
 from websockets.legacy.server import HTTPResponse
 
-from sigsvc.auth.handle import auth
 from sigsvc.biz.log import LoggerAdapter
 from sigsvc.biz.log import init as log_init
 from sigsvc.biz.webrtc import handler as webrtc_handler
@@ -21,8 +20,8 @@ async def process_request(path: str, request_headers: websockets.Headers) -> t.O
     Yields `None` upon successful processing, or else provides an `HTTPResponse` (with an error code) to interrupt the
     initial handshake.
     """
-    log.debug(f"request path: {path}")  # pylint: disable=logging-fstring-interpolation
-    return await auth(request_headers)
+    log.debug(f"request path: {path}, headers: {request_headers}")  # pylint: disable=logging-fstring-interpolation
+    return None
 
 
 async def main() -> None:
