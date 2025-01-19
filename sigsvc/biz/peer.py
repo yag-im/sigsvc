@@ -11,7 +11,7 @@ from sigsvc.biz.errors import RequestValidationException
 
 WS_CONN_ID_COOKIE_NAME = "sigsvc_wsconnid"
 
-HTTP_HEADER_X_UID = "X-UID"
+HTTP_HEADER_X_AUTH_UID = "x-auth-uid"
 
 
 class PeerRole(Enum):
@@ -43,7 +43,6 @@ class Peer:
     @classmethod
     def from_ws(cls, websocket: WebSocketServerProtocol) -> t.Self:
         peer_id = str(uuid.uuid4())
-        user_id = websocket.request_headers.get(HTTP_HEADER_X_UID, None)
         ws_conn_id = None
         if "cookie" in websocket.request_headers:
             raw_cookie = websocket.request_headers["cookie"]
@@ -55,5 +54,6 @@ class Peer:
                 raise RequestValidationException(f"no {WS_CONN_ID_COOKIE_NAME} cookie found")
         else:
             raise RequestValidationException("no cookies found")
+        user_id = websocket.request_headers.get(HTTP_HEADER_X_AUTH_UID, None)
         # `role` and `meta`` will be set later through the setPeerStatus() call.
         return cls(ws=websocket, id=peer_id, ws_conn_id=ws_conn_id, user_id=user_id)
