@@ -34,6 +34,7 @@ class SessionDC:
         id: str
         node_id: str
         region: str
+        cpuset_cpus: set[int]
         Schema: t.ClassVar[t.Type[Schema]] = Schema  # pylint: disable=invalid-name
 
     app_release_uuid: str
