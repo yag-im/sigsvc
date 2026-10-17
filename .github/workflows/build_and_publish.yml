@@ -24,7 +24,7 @@ jobs:
           # full history with tags is required by hatch-vcs to compute the version
           fetch-depth: 0
       - name: Install uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           enable-cache: true
