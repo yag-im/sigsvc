@@ -1,75 +1,90 @@
 [build-system]
-build-backend = "poetry_dynamic_versioning.backend"
-requires = ["poetry-core", "poetry-dynamic-versioning"]
+build-backend = "hatchling.build"
+requires = ["hatchling", "hatch-vcs"]
 
-[tool.poetry]
-authors = ["acme-im"]
+[project]
+authors = [{ name = "acme-im" }]
 description = "yag signaling service"
 keywords = ["signaling"]
 name = "sigsvc"
 readme = "README.md"
-version = "0.0.0"
-packages = [{ include = "sigsvc" }]
+dynamic = ["version"]
+requires-python = ">=3.14,<4"
+dependencies = [
+    "aiohttp>=3.12.14,<4",
+    "aiohttp-retry>=2.8.3,<3",
+    "itsdangerous>=2.1.2,<3",
+    "opentelemetry-distro",
+    "opentelemetry-exporter-otlp",
+    "pydantic>=2.12,<3",
+    "websockets>=12.0,<13",
+    "werkzeug>=3.0.6,<4",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-aiohttp = "^3.12.14"
-aiohttp-retry = "^2.8.3"
-itsdangerous = "^2.1.2"
-marshmallow = "^3.20.2"
-marshmallow-dataclass = "^8.6.0"
-opentelemetry-distro = "*"
-opentelemetry-exporter-otlp = "*"
-websockets = "^12.0"
-werkzeug = "^3.0.6"
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "pyright",
+    "ruff",
+]
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-dotenv",
+]
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "*"
-tox = "*"
-# move mypys' types-* modules deps into .pre-commit-config.yaml
+[tool.uv]
+default-groups = ["dev", "test"]
 
-[tool.poetry.group.test.dependencies]
-pytest = "*"
-pytest-asyncio = "*"
-pytest-dotenv = "*"
+[tool.hatch.version]
+source = "vcs"
 
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "semver"
+[tool.hatch.build.targets.wheel]
+packages = ["sigsvc"]
 
-[tool.bandit.assert_used]
-exclude = ["*_test.py", "test_*.py"]
-
-[tool.black]
+[tool.ruff]
 line-length = 120
-exclude = '''
-(
-  \.git
-  | \.tox
-  | \.venv
-  | venv
-  | build
-  | dist
-)
-'''
+target-version = "py314"
 
-[tool.isort]
-include_trailing_comma = true
-force_grid_wrap = 2
-use_parentheses = true
-line_length = 120
-profile = "black"
-multi_line_output = 3
-skip = "target"
-skip_glob = "**/gen/*,.venv*/*,venv*/*,.tox/*"
-known_first_party = "sigsvc"
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit
+    "UP",  # pyupgrade
+    "PL",  # pylint
+    "G",   # flake8-logging-format
+    "LOG", # flake8-logging
+]
+ignore = [
+    "UP006",   # keep `typing.Dict/List/...` style
+    "UP045",   # keep `typing.Optional` style
+    "LOG015",  # root logger is used by design (`import logging as log`)
+    "G004",    # f-strings in logging calls are allowed
+    "N818",
+    "PLR0912",
+    "PLR2004",
+    "PLW2901",
+]
 
-[tool.mypy]
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
-ignore_missing_imports = true
-plugins = "marshmallow_dataclass.mypy"
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+"**/dto.py" = ["N815"]
+"**/dto/*.py" = ["N815"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["sigsvc"]
+
+[tool.pyright]
+include = ["sigsvc"]
+pythonVersion = "3.14"
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
 
 [tool.pytest.ini_options]
 addopts = "-s -v"
@@ -81,30 +96,3 @@ markers = [
     "unit: marks unittests"
 ]
 testpaths = "tests"
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-isolated_build = True
-skipsdist = True
-skip_missing_interpreters = True
-
-[testenv:lint]
-skip_install = false
-recreate = false
-ignore_errors = false
-deps =
-    pre-commit
-commands =
-    pre-commit run --all-files
-
-[testenv:test]
-recreate = false
-ignore_errors = true
-deps =
-    poetry
-commands_pre =
-    poetry install --with test
-commands =
-    poetry run pytest tests/
-"""

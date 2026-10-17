@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.11-bookworm
+FROM python:3.14-trixie
 
 ARG DEBIAN_FRONTEND=noninteractive
 

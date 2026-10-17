@@ -35,7 +35,7 @@ class Peer:
     async def receive(self) -> str:
         msg = await self.ws.recv()
         log.info(f"<<< {self.id} [{self.role}]: {msg}")  # pylint: disable=logging-fstring-interpolation
-        return msg
+        return msg  # pyright: ignore[reportReturnType]
 
     async def close(self) -> None:
         await self.ws.close()
@@ -56,4 +56,4 @@ class Peer:
             raise RequestValidationException("no cookies found")
         user_id = websocket.request_headers.get(HTTP_HEADER_X_AUTH_UID, None)
         # `role` and `meta`` will be set later through the setPeerStatus() call.
-        return cls(ws=websocket, id=peer_id, ws_conn_id=ws_conn_id, user_id=user_id)
+        return cls(ws=websocket, id=peer_id, ws_conn_id=ws_conn_id, user_id=user_id)  # pyright: ignore[reportArgumentType]

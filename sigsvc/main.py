@@ -28,7 +28,7 @@ async def main() -> None:
     async with websockets.serve(
         webrtc_handler,
         host=LISTEN_IP,
-        port=LISTEN_PORT,
+        port=LISTEN_PORT,  # pyright: ignore[reportArgumentType]
         process_request=process_request,
         logger=LoggerAdapter(log.getLogger("websockets.server"), None),
     ):

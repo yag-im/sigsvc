@@ -14,41 +14,33 @@ help: ## This help
 .PHONY: build
 build: ## Build app package
 	rm -rf dist
-	poetry build -f wheel
+	uv build --wheel
 
 .PHONY: bootstrap
 bootstrap: ## Perform a bootstrap
 	# deleting as there may be a conflict when running inside a devcontainer vs local host
-	rm -rf .venv && rm -rf .tox
-	curl -sSL https://install.python-poetry.org | python3 - --uninstall || true
-	curl -sSL https://install.python-poetry.org | python3 -
-	# help IDEs to recognize venv's python interpreter
-	poetry config virtualenvs.in-project true
-	poetry self add "poetry-dynamic-versioning[plugin]"
-	# poetry will create .venv as well:
-	poetry install --only dev
+	rm -rf .venv
+	command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+	# uv will create .venv and install app with all deps (dev and test groups included)
+	uv sync
 	# install pre-commit hooks
-	source .venv/bin/activate \
-		&& pre-commit install \
-		&& pre-commit install --hook-type commit-msg
-	# install app and all deps
-	poetry install
+	uv run pre-commit install
+	uv run pre-commit install --hook-type commit-msg
 
 .PHONY: lint
 lint: ## Run linters
-	poetry run tox -e lint
+	uv run pre-commit run --all-files
 
 .PHONY: test
 test: ## Run unit tests
-	poetry run tox -e test
+	uv run pytest tests/
 
 .PHONY: clean
 clean: ## Remove all generated artifacts (except .venv and .env)
 	find . -name '__pycache__' -exec rm -rf {} +
 	find . -name '*.pyc' -exec rm -rf {} +
-	rm -rf .mypy_cache
+	rm -rf .ruff_cache
 	rm -rf .pytest_cache
-	rm -rf .tox
 	rm -rf dist
 
 .PHONY: docker-run
@@ -69,8 +61,7 @@ docker-build: ## Build docker image
 
 .PHONY: gha-build
 gha-build: ## GitHub action: install all deps, lint, test and build app
-	poetry install --only dev
+	uv sync --locked
 	$(MAKE) lint
 	$(MAKE) test
-	poetry install
-	poetry build -f wheel
+	$(MAKE) build

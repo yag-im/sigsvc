@@ -6,12 +6,12 @@
     "runArgs": [
         "--name=yag-sigsvc",
         "--add-host=sessionsvc.yag.dc:host-gateway",
-		"--env-file=${localWorkspaceFolder}/.devcontainer/.env"
-	],
+        "--env-file=${localWorkspaceFolder}/.devcontainer/.env"
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.black-formatter",
+                "charliermarsh.ruff",
                 "humao.rest-client"
             ]
         }

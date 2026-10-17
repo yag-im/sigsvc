@@ -96,7 +96,7 @@ async def handle_end_session(peer: Peer, req: EndSessionRequestDTO) -> None:
             log.info("hope session will be terminated properly")
             if direct and peer.role == PeerRole.CONSUMER:
                 # only consumers explicitly calling endSession know how to handle sessionEnded events
-                await peer.send(EndSessionResponseDTO.Schema().dumps(EndSessionResponseDTO(session_id=req.sessionId)))
+                await peer.send(EndSessionResponseDTO(session_id=req.sessionId).model_dump_json())
             return
         sessions_manager.set_session_ending(req.sessionId)
         other_peer_id = session.other_peer_id(peer.id)
@@ -105,11 +105,11 @@ async def handle_end_session(peer: Peer, req: EndSessionRequestDTO) -> None:
         if other_peer_id:
             other_peer = peers.get(other_peer_id, None)
             if other_peer:
-                await other_peer.send(EndSessionRequestDTO.Schema().dumps(req))
+                await other_peer.send(req.model_dump_json())
                 del peers[other_peer_id]
     except Exception as e:  # pylint: disable=broad-exception-caught
         log.error(f"handle_end_session error: {e}")
-    if not session:
+    if not session:  # pyright: ignore[reportPossiblyUnboundVariable]
         return
     # so there is a session, but we've crashed in the try/catch block above
     if req.soft:
@@ -120,7 +120,7 @@ async def handle_end_session(peer: Peer, req: EndSessionRequestDTO) -> None:
         await sessions_manager.close_session(session_id=session.id)
     if direct and peer.role == PeerRole.CONSUMER:
         # only consumers know how to handle sessionEnded events
-        await peer.send(EndSessionResponseDTO.Schema().dumps(EndSessionResponseDTO(session_id=session.id)))
+        await peer.send(EndSessionResponseDTO(session_id=session.id).model_dump_json())
 
 
 async def handle_peer_msg(peer: Peer, req: dict) -> None:
@@ -148,12 +148,8 @@ async def handle_start_session(session_id: str, peer_producer_id: str, peer_cons
     if not peer_producer:
         raise UnknownPeerException(f"producer peer (id: {peer_producer_id}) is unknown")
     await sessions_manager.start_session(session_id, peer_consumer.ws_conn_id, peer_producer.id, peer_consumer.id)
-    await peer_producer.send(
-        StartSessionRequestDTO.Schema().dumps(StartSessionRequestDTO(peerId=peer_consumer.id, sessionId=session_id))
-    )
-    await peer_consumer.send(
-        SessionStartedRequestDTO.Schema().dumps(SessionStartedRequestDTO(peerId=peer_producer.id, sessionId=session_id))
-    )
+    await peer_producer.send(StartSessionRequestDTO(peerId=peer_consumer.id, sessionId=session_id).model_dump_json())
+    await peer_consumer.send(SessionStartedRequestDTO(peerId=peer_producer.id, sessionId=session_id).model_dump_json())
 
 
 async def handle_list(peer: Peer) -> None:
@@ -163,24 +159,22 @@ async def handle_list(peer: Peer) -> None:
         producer_id = consumers_to_producers_map[peer.id]
         if producer_id in peers:
             await peer.send(
-                ListResponseDTO.Schema().dumps(
-                    ListResponseDTO(producers=[ListResponseDTO.Producer(id=producer_id, meta=peers[producer_id].meta)])
-                )
+                ListResponseDTO(
+                    producers=[ListResponseDTO.Producer(id=producer_id, meta=peers[producer_id].meta)]
+                ).model_dump_json()
             )
         return
-    await peer.send(ListResponseDTO.Schema().dumps(ListResponseDTO(producers=[])))
+    await peer.send(ListResponseDTO(producers=[]).model_dump_json())
 
 
 async def handle_set_peer_status(peer: Peer, req: SetPeerStatusRequestDTO) -> None:
     log.debug(f"handle_set_peer_status - peer: {peer.id}")
     peer.meta = req.meta
-    res = PeerStatusResponseDTO.Schema().dumps(
-        PeerStatusResponseDTO(
-            roles=req.roles,
-            meta=peer.meta,
-            peerId=peer.id,
-        )
-    )
+    res = PeerStatusResponseDTO(
+        roles=req.roles,
+        meta=peer.meta,
+        peerId=peer.id,
+    ).model_dump_json()
     if "listener" in req.roles:
         peer.role = PeerRole.CONSUMER
     elif "producer" in req.roles:
@@ -200,13 +194,13 @@ async def handle_set_peer_status(peer: Peer, req: SetPeerStatusRequestDTO) -> No
 
 async def handle_create_session(peer: Peer, req: CreateSessionRequestDTO) -> None:
     res = await sessions_manager.create_session(peer, req)
-    await peer.send(CreateSessionResponseDTO.Schema().dumps(CreateSessionResponseDTO(session_id=res.session_id)))
+    await peer.send(CreateSessionResponseDTO(session_id=res.session_id).model_dump_json())
 
 
 async def handle_get_session(peer: Peer, req: GetSessionRequestDTO) -> None:
     res = await sessions_manager.get_session(req.sessionId)
     if res:
-        await peer.send(GetSessionResponseDTO.Schema().dumps(GetSessionResponseDTO(res)))
+        await peer.send(GetSessionResponseDTO(session=res).model_dump_json())
     else:
         await peer.send("{}")
 
@@ -220,7 +214,7 @@ async def handle_get_sessions(peer: Peer) -> None:
         res = await sessions_manager.get_producer_sessions(peer.id)
     else:
         raise RequestValidationException(f"unknown peer role: {peer.role}")
-    await peer.send(GetSessionsResponseDTO.Schema().dumps(GetSessionsResponseDTO(sessions=res)))
+    await peer.send(GetSessionsResponseDTO(sessions=res).model_dump_json())
 
 
 async def handle_submit_webrtc_stats(req: SubmitWebRtcStatsRequestDTO) -> None:
@@ -236,19 +230,19 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
     closed = asyncio.ensure_future(websocket.wait_closed())
     closed.add_done_callback(lambda task: asyncio.create_task(handle_connection_closed(peer)))
 
-    await peer.send(WelcomeResponseDTO.Schema().dumps(WelcomeResponseDTO(peerId=peer.id)))
+    await peer.send(WelcomeResponseDTO(peerId=peer.id).model_dump_json())
 
     async for msg in peer.ws:
         try:
             msg = json.loads(msg)
             if msg["type"] == RequestType.SET_PEER_STATUS.value:
-                await handle_set_peer_status(peer, SetPeerStatusRequestDTO.Schema().load(data=msg))
+                await handle_set_peer_status(peer, SetPeerStatusRequestDTO.model_validate(msg))
             elif msg["type"] == RequestType.LIST.value:
                 await handle_list(peer)
             elif msg["type"] == RequestType.CREATE_SESSION.value:
-                await handle_create_session(peer, CreateSessionRequestDTO.Schema().load(data=msg))
+                await handle_create_session(peer, CreateSessionRequestDTO.model_validate(msg))
             elif msg["type"] == RequestType.START_SESSION.value:
-                req_start_session: StartSessionRequestDTO = StartSessionRequestDTO.Schema().load(data=msg)
+                req_start_session = StartSessionRequestDTO.model_validate(msg)
                 await handle_start_session(
                     session_id=req_start_session.sessionId,
                     peer_producer_id=req_start_session.peerId,
@@ -259,13 +253,13 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
                 # Change it to the dataclass DTO.
                 await handle_peer_msg(peer, msg)
             elif msg["type"] == RequestType.END_SESSION.value:
-                await handle_end_session(peer, EndSessionRequestDTO.Schema().load(data=msg))
+                await handle_end_session(peer, EndSessionRequestDTO.model_validate(msg))
             elif msg["type"] == RequestType.GET_SESSIONS.value:
                 await handle_get_sessions(peer)
             elif msg["type"] == RequestType.GET_SESSION.value:
-                await handle_get_session(peer, GetSessionRequestDTO.Schema().load(data=msg))
+                await handle_get_session(peer, GetSessionRequestDTO.model_validate(msg))
             elif msg["type"] == RequestType.SUBMIT_WEBRTC_STATS.value:
-                await handle_submit_webrtc_stats(SubmitWebRtcStatsRequestDTO.Schema().load(data=msg))
+                await handle_submit_webrtc_stats(SubmitWebRtcStatsRequestDTO.model_validate(msg))
             else:
                 raise RequestValidationException(f"unknown request type: {msg}")
         except ConnectionClosedError as e:
@@ -273,7 +267,7 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
             break
         except BizException as e:
             log.error(f"biz exception occured: {e}, peer_id: {peer.id}, connection_id: {peer.ws.id}")
-            await peer.send(ErrorResponseDTO.Schema().dumps(ErrorResponseDTO(code=e.code, message=e.message)))
+            await peer.send(ErrorResponseDTO(code=e.code, message=e.message).model_dump_json())
         except Exception as e:  # pylint: disable=broad-exception-caught
             log.error(
                 f"exception occured in the msg polling loop: {e}, peer_id: {peer.id}, connection_id: {peer.ws.id}"

@@ -6,7 +6,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ github.repository }}
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.14'
   REGISTRY: ghcr.io
 
 jobs:
@@ -20,13 +20,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - name: Set up Python
-        uses: actions/setup-python@v5
+        with:
+          # full history with tags is required by hatch-vcs to compute the version
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'poetry'
+          enable-cache: true
       - name: Build app
         run: make gha-build
       - name: Bump version and push tag

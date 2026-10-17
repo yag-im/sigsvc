@@ -25,11 +25,11 @@ async def create_session(req: CreateSessionRequestDTO) -> CreateSessionResponseD
         try:
             async with client.post(
                 url=f"{SESSIONSVC_URL}/sessions/create",
-                json=CreateSessionRequestDTO.Schema().dump(req),
+                json=req.model_dump(mode="json"),
             ) as res:
                 if res.status != 200:
                     raise SessionSvcException(await res.json())
-                return CreateSessionResponseDTO.Schema().load(data=await res.json())
+                return CreateSessionResponseDTO.model_validate(await res.json())
         except SessionSvcException as e:
             raise e
         except Exception as e:
@@ -42,7 +42,7 @@ async def start_session(session_id: str, req: StartSessionRequestDTO) -> None:
         try:
             async with client.post(
                 url=f"{SESSIONSVC_URL}/sessions/{session_id}/start",
-                json=StartSessionRequestDTO.Schema().dump(req),
+                json=req.model_dump(mode="json"),
             ) as res:
                 if res.status != 200:
                     raise SessionSvcException(await res.json())
@@ -94,7 +94,7 @@ async def get_session(session_id: str) -> GetSessionResponseDTO:
                     if res.status == 409 and res_json["code"] == 1404:
                         raise SessionNotFoundException()
                     raise SessionSvcException(res_json)
-                return GetSessionResponseDTO.Schema().load(data=res_json)
+                return GetSessionResponseDTO.model_validate(res_json)
         except SessionSvcException as e:
             raise e
         except SessionNotFoundException as e:
@@ -112,7 +112,7 @@ async def get_user_sessions(user_id: int) -> GetSessionsResponseDTO:
             ) as res:
                 if res.status != 200:
                     raise SessionSvcException(await res.json())
-                return GetSessionsResponseDTO.Schema().load(data=await res.json())
+                return GetSessionsResponseDTO.model_validate(await res.json())
         except SessionSvcException as e:
             raise e
         except Exception as e:
@@ -128,7 +128,7 @@ async def get_consumer_sessions(consumer_id: str) -> GetSessionsResponseDTO:
             ) as res:
                 if res.status != 200:
                     raise SessionSvcException(await res.json())
-                return GetSessionsResponseDTO.Schema().load(data=await res.json())
+                return GetSessionsResponseDTO.model_validate(await res.json())
         except SessionSvcException as e:
             raise e
         except Exception as e:
@@ -144,7 +144,7 @@ async def get_producer_sessions(producer_id: str) -> GetSessionsResponseDTO:
             ) as res:
                 if res.status != 200:
                     raise SessionSvcException(await res.json())
-                return GetSessionsResponseDTO.Schema().load(data=await res.json())
+                return GetSessionsResponseDTO.model_validate(await res.json())
         except SessionSvcException as e:
             raise e
         except Exception as e:
@@ -157,7 +157,7 @@ async def submit_webrtc_stats(session_id: str, req: SubmitWebRtcStatsRequestDTO)
         try:
             async with client.post(
                 url=f"{SESSIONSVC_URL}/sessions/{session_id}/stats",
-                json=SubmitWebRtcStatsRequestDTO.Schema().dump(req),
+                json=req.model_dump(mode="json"),
             ) as res:
                 if res.status != 200:
                     raise SessionSvcException(await res.json())
